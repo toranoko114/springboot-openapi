@@ -1,0 +1,68 @@
+plugins {
+    id 'org.springframework.boot' version '2.7.5'
+    id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+    id "org.openapi.generator" version "6.2.0"
+    id 'java'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    // バージョンをUPさせた
+    compileOnly 'io.swagger.core.v3:swagger-annotations:2.2.4'
+    // io.swagger.v3.oas.modelsが存在しません
+    compileOnly 'io.swagger.core.v3:swagger-models:2.1.1'
+    // org.openapitools.jackson.nullableは存在しません
+    compileOnly 'org.openapitools:jackson-databind-nullable:0.2.4'
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:2.2.2'
+    runtimeOnly 'com.h2database:h2'
+    // h2データベースをブラウザから見るため
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+task buildApiDoc(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+    generatorName = "html2"
+    inputSpec = "$rootDir/src/main/resources/api-schema.yaml".toString()
+    outputDir = "$buildDir/apidoc".toString()
+}
+
+task buildSpringServer(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+    generatorName = "spring"
+    inputSpec = "$rootDir/src/main/resources/api-schema.yaml".toString()
+    outputDir = "$buildDir/spring".toString()
+    apiPackage = "com.example.todoapi.controller"
+    modelPackage = "com.example.todoapi.model"
+    configOptions = [
+            // interfaceOnlyにしないと実装クラスも作られてしまう
+            interfaceOnly: "true"
+    ]
+
+    compileJava.dependsOn tasks.buildSpringServer
+    sourceSets.main.java.srcDir "$buildDir/spring/src/main/java"
+
+}
