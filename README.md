@@ -9,3 +9,5 @@ OpenAPIを利用したAPI開発
 ## 手段
 Udemyの講座を受講
 
+## ローカル実行方法
+`./gradlew buildSpringServer `を実行したあと、アプリケーションを起動
